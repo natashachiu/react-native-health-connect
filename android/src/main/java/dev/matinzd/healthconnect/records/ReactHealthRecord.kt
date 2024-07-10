@@ -4,6 +4,7 @@ import androidx.health.connect.client.aggregate.AggregationResult
 import androidx.health.connect.client.records.Record
 import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
+import androidx.health.connect.client.request.ChangesTokenRequest
 import androidx.health.connect.client.response.InsertRecordsResponse
 import androidx.health.connect.client.response.ReadRecordResponse
 import androidx.health.connect.client.response.ReadRecordsResponse
@@ -52,6 +53,10 @@ class ReactHealthRecord {
 
     fun parseReadRequest(recordType: String, reactRequest: ReadableMap): ReadRecordsRequest<*> {
       return convertReactRequestOptionsFromJS(getRecordByType(recordType), reactRequest)
+    }
+
+    fun parseChangesTokenRequest(recordType: String): ChangesTokenRequest {
+      return ChangesTokenRequest(setOf(getRecordByType(recordType)))
     }
 
     fun getAggregateRequest(recordType: String, reactRequest: ReadableMap): AggregateRequest {

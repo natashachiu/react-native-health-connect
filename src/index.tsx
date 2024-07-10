@@ -119,6 +119,16 @@ export function readRecord<T extends RecordType>(
   return HealthConnect.readRecord(recordType, recordId);
 }
 
+export function getChangesToken<T extends RecordType>(
+  recordType: T
+): Promise<string> {
+  return HealthConnect.getChangesToken(recordType);
+}
+
+// export function getChanges(token: string): Promise<any> {
+//   return HealthConnect.getChanges(token);
+// }
+
 export function insertRecords(
   records: HealthConnectRecord[]
 ): Promise<string[]> {

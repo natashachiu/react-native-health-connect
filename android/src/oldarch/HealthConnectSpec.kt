@@ -36,6 +36,12 @@ abstract class HealthConnectSpec internal constructor(context: ReactApplicationC
   abstract fun readRecord(recordType: String, recordId: String, promise: Promise);
 
   @ReactMethod
+  abstract fun getChangesToken(recordType: String, promise: Promise)
+
+  // @ReactMethod
+  // abstract fun getChanges(changesToken: String, promise: Promise)
+
+  @ReactMethod
   abstract fun aggregateRecord(record: ReadableMap, promise: Promise);
 
   @ReactMethod

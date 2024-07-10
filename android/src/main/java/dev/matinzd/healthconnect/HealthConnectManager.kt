@@ -2,6 +2,10 @@ package dev.matinzd.healthconnect
 
 import android.content.Intent
 import androidx.health.connect.client.HealthConnectClient
+// import androidx.health.connect.client.changes.UpsertionChange
+// import androidx.health.connect.client.changes.DeletionChange
+// import com.facebook.react.bridge.WritableNativeArray
+// import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
@@ -125,6 +129,54 @@ class HealthConnectManager(private val applicationContext: ReactApplicationConte
     }
   }
 
+  fun getChangesToken(recordType: String,  promise: Promise) {
+    throwUnlessClientIsAvailable(promise) {
+      coroutineScope.launch {
+        try {
+          val request = ReactHealthRecord.parseChangesTokenRequest(recordType)
+          val response = healthConnectClient.getChangesToken(request)
+          promise.resolve(response)
+        } catch (e: Exception) {
+          promise.rejectWithException(e)
+        }
+      }
+    }
+  }
+
+  // fun getChanges(changesToken: String, promise: Promise) {
+  //   throwUnlessClientIsAvailable(promise) {
+  //     coroutineScope.launch {
+  //       try {
+  //         val response = healthConnectClient.getChanges(changesToken)
+  //         val changesArray = WritableNativeArray()
+
+  //         response.changes.forEach { change ->
+  //           val changeMap = WritableNativeMap()
+  //           when (change) {
+  //             is UpsertionChange -> {
+  //               changeMap.putString("type", "upsertion")
+  //               changeMap.putMap("record", ReactHealthRecord.parseRecord(change.recordType, change.record))
+  //             }
+  //             is DeletionChange -> {
+  //               changeMap.putString("type", "deletion")
+  //               changeMap.putString("recordId", change.recordId)
+  //             }
+  //           }
+  //           changesArray.pushMap(changeMap)
+  //         }
+
+  //         val result = WritableNativeMap()
+  //         result.putArray("changes", changesArray)
+  //         result.putString("nextChangesToken", response.nextChangesToken)
+  //         result.putBoolean("hasMore", response.hasMore)
+
+  //         promise.resolve(result)
+  //       } catch (e: Exception) {
+  //         promise.rejectWithException(e)
+  //       }
+  //     }
+  //   }
+  // }
   fun aggregateRecord(record: ReadableMap, promise: Promise) {
     throwUnlessClientIsAvailable(promise) {
       coroutineScope.launch {

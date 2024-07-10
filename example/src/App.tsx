@@ -14,6 +14,7 @@ import {
   openHealthConnectSettings,
   openHealthConnectDataManagement,
   readRecord,
+  getChangesToken,
 } from 'react-native-health-connect';
 
 const getLastWeekDate = (): Date => {
@@ -109,25 +110,34 @@ export default function App() {
 
   const requestSamplePermissions = () => {
     requestPermission([
-      {
-        accessType: 'read',
-        recordType: 'Steps',
-      },
-      {
-        accessType: 'write',
-        recordType: 'Steps',
-      },
+      { accessType: 'read', recordType: 'ExerciseSession' },
     ]).then((permissions) => {
       console.log('Granted permissions on request ', { permissions });
     });
   };
 
   const grantedPermissions = () => {
-    getGrantedPermissions().then((permissions) => {
-      console.log('Granted permissions ', { permissions });
-    });
+    getGrantedPermissions()
+      .then((permissions) => {
+        console.log('Granted permissions ', { permissions });
+        if (grantedPermissions.length === 0) {
+          console.warn('No permissions were granted for ExerciseSession.');
+        }
+      })
+      .catch((err) => {
+        console.error('Error getting granted permissions ', { err });
+      });
   };
 
+  const getSampleChangesToken = async () => {
+    let result = '';
+    try {
+      result = await getChangesToken('ExerciseSession');
+    } catch (err) {
+      console.error('Error getting changes token for ExerciseSession:', err);
+    }
+    console.log('Result:', result);
+  };
   return (
     <View style={styles.container}>
       <Button title="Initialize" onPress={initializeHealthConnect} />
@@ -150,6 +160,7 @@ export default function App() {
       <Button title="Read sample data" onPress={readSampleData} />
       <Button title="Read specific data" onPress={readSampleDataSingle} />
       <Button title="Aggregate sample data" onPress={aggregateSampleData} />
+      <Button title="Get changes token" onPress={getSampleChangesToken} />
     </View>
   );
 }
