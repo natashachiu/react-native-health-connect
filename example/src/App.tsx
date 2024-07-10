@@ -2,19 +2,20 @@ import * as React from 'react';
 
 import { Button, StyleSheet, View } from 'react-native';
 import {
+  SdkAvailabilityStatus,
   aggregateRecord,
+  getChanges,
+  getChangesToken,
   getGrantedPermissions,
+  getSdkStatus,
   initialize,
   insertRecords,
-  getSdkStatus,
+  openHealthConnectDataManagement,
+  openHealthConnectSettings,
+  readRecord,
   readRecords,
   requestPermission,
   revokeAllPermissions,
-  SdkAvailabilityStatus,
-  openHealthConnectSettings,
-  openHealthConnectDataManagement,
-  readRecord,
-  getChangesToken,
 } from 'react-native-health-connect';
 
 const getLastWeekDate = (): Date => {
@@ -55,8 +56,8 @@ export default function App() {
   const insertSampleData = () => {
     insertRecords([
       {
-        recordType: 'Steps',
-        count: 1000,
+        recordType: 'ExerciseSession',
+        exerciseType: 56,
         startTime: getLastWeekDate().toISOString(),
         endTime: getTodayDate().toISOString(),
       },
@@ -70,7 +71,7 @@ export default function App() {
   };
 
   const readSampleData = () => {
-    readRecords('Steps', {
+    readRecords('ExerciseSession', {
       timeRangeFilter: {
         operator: 'between',
         startTime: getLastTwoWeeksDate().toISOString(),
@@ -111,6 +112,7 @@ export default function App() {
   const requestSamplePermissions = () => {
     requestPermission([
       { accessType: 'read', recordType: 'ExerciseSession' },
+      { accessType: 'write', recordType: 'ExerciseSession' },
     ]).then((permissions) => {
       console.log('Granted permissions on request ', { permissions });
     });
@@ -138,6 +140,20 @@ export default function App() {
     }
     console.log('Result:', result);
   };
+
+  const getSampleChanges = async (token: string) => {
+    try {
+      const result = await getChanges('ExerciseSession', token);
+      console.log('Result:', JSON.stringify(result, null, 2));
+    } catch (err) {
+      console.error('Error getting changes for ExerciseSession:', err);
+    }
+  };
+
+  // this should be stored in async storage
+  // for now, paste the token here after fetching
+  const TOKEN = 'xxxxx';
+
   return (
     <View style={styles.container}>
       <Button title="Initialize" onPress={initializeHealthConnect} />
@@ -161,6 +177,7 @@ export default function App() {
       <Button title="Read specific data" onPress={readSampleDataSingle} />
       <Button title="Aggregate sample data" onPress={aggregateSampleData} />
       <Button title="Get changes token" onPress={getSampleChangesToken} />
+      <Button title="Get changes" onPress={() => getSampleChanges(TOKEN)} />
     </View>
   );
 }

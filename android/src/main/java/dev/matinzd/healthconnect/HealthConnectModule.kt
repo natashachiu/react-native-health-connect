@@ -70,10 +70,10 @@ class HealthConnectModule internal constructor(context: ReactApplicationContext)
     return manager.getChangesToken(recordType, promise)
   }
 
-  // @ReactMethod
-  // override fun getChanges(changesToken: String, promise: Promise) {
-  //   return manager.getChanges(changesToken, promise)
-  // }
+  @ReactMethod
+  override fun getChanges(recordType: String, changesToken: String, promise: Promise) {
+    return manager.getChanges(recordType, changesToken, promise)
+  }
 
   @ReactMethod
   override fun aggregateRecord(record: ReadableMap, promise: Promise) {

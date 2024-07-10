@@ -30,7 +30,7 @@ export interface Spec extends TurboModule {
   ): Promise<Array<{}>>;
   readRecord(recordType: string, recordId: string): Promise<{}>;
   getChangesToken(recordType: string): Promise<string>;
-  // getChanges(token: string): Promise<any>;
+  getChanges(recordType: string, token: string): Promise<{}>;
   aggregateRecord(record: {
     recordType: string;
     startTime: string;

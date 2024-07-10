@@ -2,10 +2,10 @@ package dev.matinzd.healthconnect
 
 import android.content.Intent
 import androidx.health.connect.client.HealthConnectClient
-// import androidx.health.connect.client.changes.UpsertionChange
-// import androidx.health.connect.client.changes.DeletionChange
-// import com.facebook.react.bridge.WritableNativeArray
-// import com.facebook.react.bridge.WritableNativeMap
+import androidx.health.connect.client.changes.UpsertionChange
+import androidx.health.connect.client.changes.DeletionChange
+import com.facebook.react.bridge.WritableNativeArray
+import com.facebook.react.bridge.WritableNativeMap
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableArray
@@ -143,40 +143,52 @@ class HealthConnectManager(private val applicationContext: ReactApplicationConte
     }
   }
 
-  // fun getChanges(changesToken: String, promise: Promise) {
-  //   throwUnlessClientIsAvailable(promise) {
-  //     coroutineScope.launch {
-  //       try {
-  //         val response = healthConnectClient.getChanges(changesToken)
-  //         val changesArray = WritableNativeArray()
+fun getChanges(recordType: String, changesToken: String, promise: Promise) {
+  throwUnlessClientIsAvailable(promise) {
+    coroutineScope.launch {
+      try {
+        var nextChangesToken = changesToken
+        val allChanges = WritableNativeArray()
 
-  //         response.changes.forEach { change ->
-  //           val changeMap = WritableNativeMap()
-  //           when (change) {
-  //             is UpsertionChange -> {
-  //               changeMap.putString("type", "upsertion")
-  //               changeMap.putMap("record", ReactHealthRecord.parseRecord(change.recordType, change.record))
-  //             }
-  //             is DeletionChange -> {
-  //               changeMap.putString("type", "deletion")
-  //               changeMap.putString("recordId", change.recordId)
-  //             }
-  //           }
-  //           changesArray.pushMap(changeMap)
-  //         }
+        do {
+          val response = healthConnectClient.getChanges(nextChangesToken)
 
-  //         val result = WritableNativeMap()
-  //         result.putArray("changes", changesArray)
-  //         result.putString("nextChangesToken", response.nextChangesToken)
-  //         result.putBoolean("hasMore", response.hasMore)
+          response.changes.forEach { change ->
+            val changeMap = WritableNativeMap()
+            when (change) {
+              is UpsertionChange -> {
+                if (change.record.metadata.dataOrigin.packageName != applicationContext.packageName) {
+                  val recordId = change.record.metadata.id
+                  val record = ReactHealthRecord.getRecordByType(recordType)
+                  val recordResponse = healthConnectClient.readRecord(record, recordId)
+                  changeMap.putString("id", recordId)
+                  changeMap.putString("type", "upsertion")
+                  changeMap.putMap("record", ReactHealthRecord.parseRecord(recordType, recordResponse))
+                  allChanges.pushMap(changeMap)
+                }
+              }
+              is DeletionChange -> {
+                changeMap.putString("type", "deletion")
+                changeMap.putString("id", change.recordId)
+                allChanges.pushMap(changeMap)
+              }
+            }
+          }
 
-  //         promise.resolve(result)
-  //       } catch (e: Exception) {
-  //         promise.rejectWithException(e)
-  //       }
-  //     }
-  //   }
-  // }
+          nextChangesToken = response.nextChangesToken
+        } while (response.hasMore)
+
+        val result = WritableNativeMap()
+        result.putArray("changes", allChanges)
+        result.putString("nextChangesToken", nextChangesToken)
+
+        promise.resolve(result)
+      } catch (e: Exception) {
+        promise.rejectWithException(e)
+      }
+    }
+  }
+}
   fun aggregateRecord(record: ReadableMap, promise: Promise) {
     throwUnlessClientIsAvailable(promise) {
       coroutineScope.launch {

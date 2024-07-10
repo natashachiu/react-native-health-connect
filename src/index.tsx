@@ -4,6 +4,7 @@ import type {
   AggregateRequest,
   AggregateResult,
   AggregateResultRecordType,
+  GetChangesResult,
   HealthConnectRecord,
   Permission,
   ReadRecordsOptions,
@@ -125,9 +126,12 @@ export function getChangesToken<T extends RecordType>(
   return HealthConnect.getChangesToken(recordType);
 }
 
-// export function getChanges(token: string): Promise<any> {
-//   return HealthConnect.getChanges(token);
-// }
+export function getChanges<T extends RecordType>(
+  recordType: T,
+  token: string
+): Promise<GetChangesResult<T>> {
+  return HealthConnect.getChanges(recordType, token);
+}
 
 export function insertRecords(
   records: HealthConnectRecord[]

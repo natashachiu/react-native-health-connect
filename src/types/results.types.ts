@@ -321,3 +321,19 @@ export type RecordResult<T extends RecordType> = Omit<
   Extract<HealthConnectRecordResult, { recordType: T }>,
   'recordType'
 >;
+
+export type ChangeResult<T extends RecordType> =
+  | {
+      id: string;
+      type: 'deletion';
+    }
+  | {
+      id: string;
+      type: 'upsertion';
+      record: RecordResult<T>;
+    };
+
+export type GetChangesResult<T extends RecordType> = {
+  nextChangesToken: string;
+  changes: ChangeResult<T>[];
+};
