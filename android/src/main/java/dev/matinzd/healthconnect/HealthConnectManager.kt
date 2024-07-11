@@ -148,39 +148,37 @@ fun getChanges(recordType: String, changesToken: String, promise: Promise) {
     coroutineScope.launch {
       try {
         var nextChangesToken = changesToken
-        val allChanges = WritableNativeArray()
+        val upsertionChanges = WritableNativeArray()
+        val deletedChanges = WritableNativeArray()
 
         do {
           val response = healthConnectClient.getChanges(nextChangesToken)
 
           response.changes.forEach { change ->
-            val changeMap = WritableNativeMap()
             when (change) {
               is UpsertionChange -> {
                 if (change.record.metadata.dataOrigin.packageName != applicationContext.packageName) {
                   val recordId = change.record.metadata.id
                   val record = ReactHealthRecord.getRecordByType(recordType)
                   val recordResponse = healthConnectClient.readRecord(record, recordId)
-                  changeMap.putString("id", recordId)
-                  changeMap.putString("type", "upsertion")
-                  changeMap.putMap("record", ReactHealthRecord.parseRecord(recordType, recordResponse))
-                  allChanges.pushMap(changeMap)
+                  upsertionChanges.pushMap(ReactHealthRecord.parseRecord(recordType, recordResponse))
                 }
               }
               is DeletionChange -> {
-                changeMap.putString("type", "deletion")
+                val changeMap = WritableNativeMap()
                 changeMap.putString("id", change.recordId)
-                allChanges.pushMap(changeMap)
+                deletedChanges.pushMap(changeMap)
               }
             }
           }
-
           nextChangesToken = response.nextChangesToken
         } while (response.hasMore)
 
         val result = WritableNativeMap()
-        result.putArray("changes", allChanges)
+        result.putArray("upsertedChanges", upsertionChanges)
+        result.putArray("deletedChanges", deletedChanges)
         result.putString("nextChangesToken", nextChangesToken)
+
 
         promise.resolve(result)
       } catch (e: Exception) {
